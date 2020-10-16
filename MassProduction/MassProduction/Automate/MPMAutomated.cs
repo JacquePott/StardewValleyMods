@@ -148,8 +148,6 @@ namespace MassProduction.Automate
         {
             if (IsMassProducer)
             {
-                ModEntry.Instance.Monitor.Log($"SetInput: {Machine.name} at {Location.name} ({TileArea.X}, {TileArea.Y}) counts as mass producer.",
-                    StardewModdingAPI.LogLevel.Debug);
                 MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(Machine.name, Machine.GetMassProducerKey());
 
                 foreach (ITrackedStack trackedStack in input.GetItems())
