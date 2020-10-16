@@ -1,0 +1,22 @@
+{
+  "Name": "Mass Production",
+  "Author": "Jacque Pott",
+  "Version": "1.0",
+  "Description": "Allows for producing goods at greater scale.",
+  "UniqueID": "JacquePott.MassProduction",
+  "EntryDll": "MassProduction.dll",
+  "MinimumApiVersion": "3.7.4",
+  "UpdateKeys": [],
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.JsonAssets"
+    },
+    {
+      "UniqueID": "Digus.ProducerFrameworkMod"
+    },
+    {
+      "UniqueID": "Pathoschild.Automate",
+      "IsRequired": false
+    }
+  ]
+}
