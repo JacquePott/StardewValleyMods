@@ -41,7 +41,7 @@ namespace MassProduction
                             GameLocation location = Game1.getLocationFromName(info.LocationName);
                             Vector2 coordinates = info.GetCoordinates();
 
-                            if (location.Objects.ContainsKey(coordinates))
+                            if (location.Objects.ContainsKey(coordinates) && location.Objects[coordinates] != null)
                             {
                                 ModEntry.Instance.Monitor.Log($"{location.Objects[coordinates].name} at {info.LocationName} {coordinates} " +
                                     $"has been given mass producer key {info.UpgradeKey}.", LogLevel.Debug);
