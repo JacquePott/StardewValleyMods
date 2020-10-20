@@ -343,5 +343,62 @@ namespace MassProduction
 
             return true;
         }
+
+        /// <summary>
+        /// Allows for inputless machines from PFM that produce every day to function.
+        /// Adapted from https://github.com/Digus/StardewValleyMods/blob/master/ProducerFrameworkMod/ObjectOverrides.cs
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        [HarmonyPriority(Priority.First + 1)] //Just before ProducerFrameworkMod. Can't use HarmonyBefore attribute, that wasn't working for some reason
+        public static bool DayUpdate_Prefix(SObject __instance, GameLocation location)
+        {
+            if (string.IsNullOrEmpty(__instance.GetMassProducerKey())) { return true; }
+
+            MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(__instance.name, __instance.GetMassProducerKey());
+
+            if (mpm == null) { return true; }
+
+            if (__instance.bigCraftable.Value)
+            {
+                if (ProducerController.GetProducerConfig(__instance.Name) is ProducerConfig producerConfig)
+                {
+                    if (producerConfig != null)
+                    {
+                        if (ProducerController.GetProducerItem(__instance.Name, null) is ProducerRule producerRule)
+                        {
+                            if (!producerConfig.CheckSeasonCondition() || !producerConfig.CheckLocationCondition(location))
+                            {
+                                ProducerRuleController.ClearProduction(__instance, location);
+                                return false;
+                            }
+                            else if (producerConfig.NoInputStartMode != null)
+                            {
+                                if (producerConfig.NoInputStartMode == NoInputStartMode.DayUpdate || producerConfig.NoInputStartMode == NoInputStartMode.Placement)
+                                {
+                                    if (__instance.heldObject.Value == null)
+                                    {
+                                        try
+                                        {
+
+                                            Farmer who = Game1.getFarmer((long)__instance.owner);
+                                            PFMCompatability.ProduceOutput(producerRule, mpm.Settings, __instance, 
+                                                (i, q) => who.hasItemInInventory(i, q), who, who.currentLocation, producerConfig);
+                                        }
+                                        catch (RestrictionException)
+                                        {
+                                            //Does not show the restriction error since the machine is auto-starting.
+                                        }
+                                    }
+                                }
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
     }
 }

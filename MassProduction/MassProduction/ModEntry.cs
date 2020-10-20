@@ -65,7 +65,12 @@ namespace MassProduction
                 original: AccessTools.Method(typeof(SObject), nameof(SObject.performDropDownAction)),
                 prefix: new HarmonyMethod(typeof(ObjectOverrides), nameof(ObjectOverrides.performDropDownAction_Prefix))
             );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(SObject), nameof(SObject.DayUpdate)),
+                prefix: new HarmonyMethod(typeof(ObjectOverrides), nameof(ObjectOverrides.DayUpdate_Prefix))
+            );
 
+            //Automate integration
             if (Helper.ModRegistry.IsLoaded("Pathoschild.Automate"))
             {
                 IAutomateAPI automate = Helper.ModRegistry.GetApi<IAutomateAPI>("Pathoschild.Automate");
