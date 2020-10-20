@@ -85,7 +85,7 @@ namespace MassProduction
 
                 if (mpm == null) { return true; }
 
-                if (StaticValues.SUPPORTED_VANILLA_MACHINES.Contains(__instance.name))
+                if (StaticValues.SUPPORTED_VANILLA_MACHINES.ContainsKey(__instance.name))
                 {
                     IVanillaOverride vanillaOverride = VanillaOverrideList.GetFor(__instance.name);
 
@@ -281,6 +281,67 @@ namespace MassProduction
             {
                 __result = false;
             }
+        }
+
+        /// <summary>
+        /// Allows for upgraded inputless machines to function.
+        /// Code adapted from https://github.com/Digus/StardewValleyMods/blob/master/ProducerFrameworkMod/ObjectOverrides.cs
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="who"></param>
+        /// <param name="__result"></param>
+        /// <returns></returns>
+        [HarmonyPriority(801)] //Just before ProducerFrameworkMod. Can't use HarmonyBefore attribute, that wasn't working for some reason
+        internal static bool performDropDownAction_Prefix(SObject __instance, Farmer who, bool __result)
+        {
+            if (string.IsNullOrEmpty(__instance.GetMassProducerKey())) { return true; }
+
+            MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(__instance.name, __instance.GetMassProducerKey());
+
+            if (mpm == null) { return true; }
+
+            if (ProducerController.GetProducerConfig(__instance.Name) is ProducerConfig producerConfig)
+            {
+                try
+                {
+                    if (!producerConfig.CheckLocationCondition(who.currentLocation))
+                    {
+                        throw new RestrictionException(ModEntry.Instance.Helper.Translation.Get("Message.Condition.Location"));
+                    }
+                    if (producerConfig.NoInputStartMode != null)
+                    {
+                        if (producerConfig.CheckSeasonCondition() && NoInputStartMode.Placement == producerConfig.NoInputStartMode)
+                        {
+                            if (ProducerController.GetProducerItem(__instance.Name, null) is ProducerRule producerRule)
+                            {
+                                PFMCompatability.ProduceOutput(producerRule, mpm.Settings, __instance, (i, q) => who.hasItemInInventory(i, q), 
+                                    who, who.currentLocation, producerConfig);
+                            }
+                        }
+                        return __result = false;
+                    }
+                }
+                catch (RestrictionException e)
+                {
+                    if (e.Message != null && who.IsLocalPlayer)
+                    {
+                        Game1.showRedMessage(e.Message);
+                    }
+                    return __result = false;
+                }
+            }
+            else if (StaticValues.SUPPORTED_VANILLA_MACHINES.ContainsKey(__instance.name) &&
+                StaticValues.SUPPORTED_VANILLA_MACHINES[__instance.name] == InputRequirement.NoInputsOnly)
+            {
+                IVanillaOverride vanillaOverride = VanillaOverrideList.GetFor(__instance.name);
+
+                if (vanillaOverride != null && vanillaOverride.Manual_PerformDropDownAction(__instance, mpm))
+                {
+                    return true;
+                }
+            }
+
+            return true;
         }
     }
 }

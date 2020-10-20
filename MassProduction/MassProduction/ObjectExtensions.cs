@@ -28,23 +28,27 @@ namespace MassProduction
         /// <param name="s"></param>
         public static void SetMassProducerKey(this SObject o, string s)
         {
-            if (MASS_PRODUCER_RECORD.ContainsKey(o))
+            try
             {
-                if (string.IsNullOrEmpty(s))
+                if (MASS_PRODUCER_RECORD.ContainsKey(o))
                 {
-                    MASS_PRODUCER_RECORD.Remove(o);
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        MASS_PRODUCER_RECORD.Remove(o);
+                    }
+                    else
+                    {
+                        MASS_PRODUCER_RECORD[o] = s;
+                    }
                 }
-                else
+                else if (!string.IsNullOrEmpty(s))
                 {
-                    MASS_PRODUCER_RECORD[o] = s;
+                    MASS_PRODUCER_RECORD.Add(o, s);
                 }
-            }
-            else if (!string.IsNullOrEmpty(s))
-            {
-                MASS_PRODUCER_RECORD.Add(o, s);
-            }
 
-            ModEntry.MPMManager.OnMachineUpgradeKeyChanged(o);
+                ModEntry.MPMManager.OnMachineUpgradeKeyChanged(o);
+            }
+            catch (Exception) { }
         }
     }
 }

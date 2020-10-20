@@ -11,9 +11,10 @@ namespace MassProduction
         /// <summary>
         /// All machines that need support outside of PFM-enabled ones.
         /// </summary>
-        public static readonly List<string> SUPPORTED_VANILLA_MACHINES = new List<string>()
+        public static readonly Dictionary<string, InputRequirement> SUPPORTED_VANILLA_MACHINES = new Dictionary<string, InputRequirement>()
         {
-            "Seed Maker"
+            { "Seed Maker", InputRequirement.InputRequired },
+            { "Worm Bin", InputRequirement.NoInputsOnly },
         };
     }
 }

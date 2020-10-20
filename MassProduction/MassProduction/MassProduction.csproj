@@ -76,6 +76,7 @@
     <Compile Include="Automate\MPMAutomationFactory.cs" />
     <Compile Include="Automate\VanillaAutomatedOverride.cs" />
     <Compile Include="data\ImageHelper.cs" />
+    <Compile Include="data\InputRequirement.cs" />
     <Compile Include="data\MPMManager.cs" />
     <Compile Include="data\MPMSettings.cs" />
     <Compile Include="data\QualitySetting.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VanillaOverrides\IVanillaOverride.cs" />
     <Compile Include="VanillaOverrides\SeedMakerOverride.cs" />
+    <Compile Include="VanillaOverrides\WormBinOverride.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.json" />

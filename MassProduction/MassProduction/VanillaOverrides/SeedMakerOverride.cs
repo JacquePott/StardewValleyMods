@@ -153,5 +153,17 @@ namespace MassProduction.VanillaOverrides
 
             return false;
         }
+
+        /// <inheritdoc/>
+        public ITrackedStack Automate_GetOutput(MassProductionMachineDefinition mpm, IMachine originalMachine, SObject originalMachineObject)
+        {
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public bool Manual_PerformDropDownAction(SObject machine, MassProductionMachineDefinition mpm)
+        {
+            return false;
+        }
     }
 }

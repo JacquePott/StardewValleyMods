@@ -3,6 +3,7 @@
 	  "Key": "Basic",
 	  "UpgradeObject": "Basic Machine Kit",
 	  "BaseMultiplier": 10,
+	  "InputRequirement": "NoRequirements",
 	  "UnlockConditions":
 	  {
 	    "TotalEarnings": 100000
@@ -13,6 +14,7 @@
 	  "UpgradeObject": "Huge Machine Kit",
 	  "BaseMultiplier": 50,
 	  "TimeMultiplier": 2,
+	  "InputRequirement": "NoRequirements",
 	  "UnlockConditions":
 	  {
 	    "UnlockedUpgrade": "Basic",

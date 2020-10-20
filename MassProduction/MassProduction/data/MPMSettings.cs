@@ -25,7 +25,7 @@ namespace MassProduction
         public double InputMultiplier { get; set; } = 0.0;
         public double OutputMultiplier { get; set; } = 0.0;
         public double TimeMultiplier { get; set; } = 1.0;
-        public bool AllowInputlessBases { get; set; } = false;
+        public string InputRequirement { get; set; } = "InputRequired";
         public QualitySetting Quality { get; set; } = QualitySetting.NoStars;
         public Dictionary<string, object> UnlockConditions { get; set; }
 
@@ -40,6 +40,13 @@ namespace MassProduction
                     return upgradeObjectId;
                 }
                 return -1;
+            }
+        }
+        public InputRequirement InputRequirementEnum
+        {
+            get
+            {
+                return (InputRequirement)Enum.Parse(typeof(InputRequirement), InputRequirement);
             }
         }
 

@@ -57,7 +57,9 @@ namespace MassProduction
 
                 foreach (MPMSettings setting in settings.Values)
                 {
-                    if (config == null || (config.NoInputStartMode.HasValue && !setting.AllowInputlessBases))
+                    if (config == null || 
+                        (config.NoInputStartMode.HasValue && setting.InputRequirementEnum == InputRequirement.InputRequired) ||
+                        (!config.NoInputStartMode.HasValue && setting.InputRequirementEnum == InputRequirement.NoInputsOnly))
                     {
                         continue;
                     }
@@ -67,14 +69,18 @@ namespace MassProduction
             }
 
             //Other vanilla machines
-            foreach (string vanillaMachineName in StaticValues.SUPPORTED_VANILLA_MACHINES)
+            foreach (string vanillaMachineName in StaticValues.SUPPORTED_VANILLA_MACHINES.Keys)
             {
                 if (!baseProducers.Contains(vanillaMachineName))
                 {
-                    //TOREVIEW: when supporting inputless machines need to check for if the setting is compatible
+                    InputRequirement inputRequirement = StaticValues.SUPPORTED_VANILLA_MACHINES[vanillaMachineName];
+
                     foreach (MPMSettings setting in settings.Values)
                     {
-                        mpms.Add(new MassProductionMachineDefinition(vanillaMachineName, setting));
+                        if (setting.InputRequirementEnum == inputRequirement || setting.InputRequirementEnum == InputRequirement.NoRequirements)
+                        {
+                            mpms.Add(new MassProductionMachineDefinition(vanillaMachineName, setting));
+                        }
                     }
                 }
             }

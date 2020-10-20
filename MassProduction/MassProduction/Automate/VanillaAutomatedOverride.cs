@@ -34,7 +34,28 @@ namespace MassProduction.Automate
 
         public ITrackedStack GetOutput()
         {
-            return OverridingMachine.GetOutput();
+            ITrackedStack overrideOutput = OverridingMachine.GetOutput();
+
+            if (overrideOutput != null)
+            {
+                return overrideOutput;
+            }
+            else
+            {
+                // Check for special overriding logic, if any is required
+                string originalClassName = OriginalMachine.GetType().FullName;
+
+                if (VanillaOverrideList.GetFor(originalClassName) != null)
+                {
+                    IVanillaOverride vanillaOverride = VanillaOverrideList.GetFor(originalClassName);
+                    MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(OriginalMachineObject.name, OriginalMachineObject.GetMassProducerKey());
+                    overrideOutput = vanillaOverride.Automate_GetOutput(mpm, OriginalMachine, OriginalMachineObject);
+
+                    if (overrideOutput != null) { return overrideOutput; }
+                }
+
+                return OriginalMachine.GetOutput();
+            }
         }
 
         public MachineState GetState()

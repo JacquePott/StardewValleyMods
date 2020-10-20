@@ -21,6 +21,15 @@ namespace MassProduction.VanillaOverrides
         bool Automate_SetInput(IStorage input, MassProductionMachineDefinition mpm, IMachine originalMachine, SObject originalMachineObject);
 
         /// <summary>
+        /// Replacement for Automate's IMachine.GetOutput().
+        /// </summary>
+        /// <param name="mpm"></param>
+        /// <param name="originalMachine"></param>
+        /// <param name="originalMachineObject"></param>
+        /// <returns></returns>
+        ITrackedStack Automate_GetOutput(MassProductionMachineDefinition mpm, IMachine originalMachine, SObject originalMachineObject);
+
+        /// <summary>
         /// Replacement for the object drop in action.
         /// </summary>
         /// <param name="machine"></param>
@@ -30,18 +39,28 @@ namespace MassProduction.VanillaOverrides
         /// <param name="mpm"></param>
         /// <returns></returns>
         bool Manual_PerformObjectDropInAction(SObject machine, SObject input, bool probe, Farmer who, MassProductionMachineDefinition mpm);
+
+        /// <summary>
+        /// Replacement for the object drop down action. Used for no-input machines.
+        /// </summary>
+        /// <param name="machine"></param>
+        /// <param name="mpm"></param>
+        /// <returns></returns>
+        bool Manual_PerformDropDownAction(SObject machine, MassProductionMachineDefinition mpm);
     }
 
     public class VanillaOverrideList
     {
-        public static readonly Dictionary<string, IVanillaOverride> Overrides = new Dictionary<string, IVanillaOverride>()
+        public static readonly Dictionary<string, IVanillaOverride> MACHINE_OVERRIDES = new Dictionary<string, IVanillaOverride>()
         {
-            { "Seed Maker", new SeedMakerOverride() }
+            { "Seed Maker", new SeedMakerOverride() },
+            { "Worm Bin", new WormBinOverride() },
         };
 
         public static readonly Dictionary<string, string> AUTOMATE_OVERRIDES = new Dictionary<string, string>()
         {
-            { "Pathoschild.Stardew.Automate.Framework.Machines.Objects.SeedMakerMachine", "Seed Maker" }
+            { "Pathoschild.Stardew.Automate.Framework.Machines.Objects.SeedMakerMachine", "Seed Maker" },
+            { "Pathoschild.Stardew.Automate.Framework.Machines.Objects.WormBinMachine", "Worm Bin" },
         };
 
         /// <summary>
@@ -51,13 +70,13 @@ namespace MassProduction.VanillaOverrides
         /// <returns>Null if no override exists.</returns>
         public static IVanillaOverride GetFor(string machineName)
         {
-            if (Overrides.ContainsKey(machineName))
+            if (MACHINE_OVERRIDES.ContainsKey(machineName))
             {
-                return Overrides[machineName];
+                return MACHINE_OVERRIDES[machineName];
             }
-            else if (AUTOMATE_OVERRIDES.ContainsKey(machineName) && Overrides.ContainsKey(AUTOMATE_OVERRIDES[machineName]))
+            else if (AUTOMATE_OVERRIDES.ContainsKey(machineName) && MACHINE_OVERRIDES.ContainsKey(AUTOMATE_OVERRIDES[machineName]))
             {
-                return Overrides[AUTOMATE_OVERRIDES[machineName]];
+                return MACHINE_OVERRIDES[AUTOMATE_OVERRIDES[machineName]];
             }
 
             return null;

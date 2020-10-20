@@ -61,6 +61,10 @@ namespace MassProduction
                 original: AccessTools.Method(typeof(SObject), nameof(SObject.isPlaceable)),
                 postfix: new HarmonyMethod(typeof(ObjectOverrides), nameof(ObjectOverrides.isPlaceable_Postfix))
             );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(SObject), nameof(SObject.performDropDownAction)),
+                prefix: new HarmonyMethod(typeof(ObjectOverrides), nameof(ObjectOverrides.performDropDownAction_Prefix))
+            );
 
             if (Helper.ModRegistry.IsLoaded("Pathoschild.Automate"))
             {
@@ -117,11 +121,12 @@ namespace MassProduction
                         }
                         else
                         {
-                            Monitor.Log($"Loaded content pack {contentPack.Manifest.Name} {contentPack.Manifest.Version} by {contentPack.Manifest.Author}.",
-                                LogLevel.Info);
                             MPMSettings.Add(setting.Key, setting);
                         }
                     }
+
+                    Monitor.Log($"Loaded content pack {contentPack.Manifest.Name} {contentPack.Manifest.Version} by {contentPack.Manifest.Author}.",
+                                LogLevel.Info);
                 }
                 else
                 {

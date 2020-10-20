@@ -134,6 +134,12 @@ namespace MassProduction.Automate
                     return MachineState.Processing;
                 }
             }
+            else if (StaticValues.SUPPORTED_VANILLA_MACHINES.ContainsKey(Machine.name) &&
+                StaticValues.SUPPORTED_VANILLA_MACHINES[Machine.name] == InputRequirement.NoInputsOnly)
+            {
+                //A no input machine is considered processing even while empty.
+                return MachineState.Processing;
+            }
 
             if (Machine.heldObject.Value == null)
             {
