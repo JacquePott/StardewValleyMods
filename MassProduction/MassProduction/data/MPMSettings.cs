@@ -24,6 +24,8 @@ namespace MassProduction
         public int OutputStaticChange { get; set; } = 0;
         public double InputMultiplier { get; set; } = 0.0;
         public double OutputMultiplier { get; set; } = 0.0;
+        public double OutputMultiplierMin { get; set; } = 0.0;
+        public double OutputMultiplierMax { get; set; } = 0.0;
         public double TimeMultiplier { get; set; } = 1.0;
         public string InputRequirement { get; set; } = "InputRequired";
         public QualitySetting Quality { get; set; } = QualitySetting.NoStars;
@@ -74,12 +76,12 @@ namespace MassProduction
         /// <returns></returns>
         public int CalculateOutputProduced(int baseOutputStack)
         {
-            double multiplier = BaseMultiplier + OutputMultiplier;
+            double multiplier = BaseMultiplier + OutputMultiplier + GetRandomDouble(OutputMultiplierMin, OutputMultiplierMax);
             if (multiplier < 1.0) { multiplier = 1.0; }
-            int outputRequired = (int)Math.Ceiling(baseOutputStack * multiplier) + OutputStaticChange;
-            if (outputRequired < 1) { outputRequired = 1; }
+            int outputProduced = (int)Math.Ceiling(baseOutputStack * multiplier) + OutputStaticChange;
+            if (outputProduced < 1) { outputProduced = 1; }
 
-            return outputRequired;
+            return outputProduced;
         }
 
         /// <summary>
@@ -89,7 +91,6 @@ namespace MassProduction
         /// <returns></returns>
         public int CalculateTimeRequired(int baseTime)
         {
-            //TOREVIEW: time needs to be in increments of ten minutes - does this accomplish that?
             int timeRequired = (int)Math.Round((baseTime / 10.0) * TimeMultiplier) * 10;
 
             return timeRequired;
@@ -162,6 +163,22 @@ namespace MassProduction
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Gets a random double in a range.
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        private double GetRandomDouble(double min, double max)
+        {
+            if (max <= min)
+            {
+                return max;
+            }
+
+            return Game1.random.NextDouble() * (max - min) + min;
         }
     }
 }

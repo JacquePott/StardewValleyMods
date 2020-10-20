@@ -9,8 +9,6 @@ namespace MassProduction
 {
     public static class ObjectExtensions
     {
-        public static Dictionary<SObject, string> MASS_PRODUCER_RECORD = new Dictionary<SObject, string>();
-
         /// <summary>
         /// Gets the mass producer identification string set for this object, or the empty string if none exists.
         /// </summary>
@@ -18,7 +16,7 @@ namespace MassProduction
         /// <returns></returns>
         public static string GetMassProducerKey(this SObject o)
         {
-            return MASS_PRODUCER_RECORD.ContainsKey(o) ? MASS_PRODUCER_RECORD[o] : "";
+            return ModEntry.MassProducerRecord.ContainsKey(o) ? ModEntry.MassProducerRecord[o] : "";
         }
 
         /// <summary>
@@ -30,25 +28,28 @@ namespace MassProduction
         {
             try
             {
-                if (MASS_PRODUCER_RECORD.ContainsKey(o))
+                if (ModEntry.MassProducerRecord.ContainsKey(o))
                 {
                     if (string.IsNullOrEmpty(s))
                     {
-                        MASS_PRODUCER_RECORD.Remove(o);
+                        ModEntry.MassProducerRecord.Remove(o);
                     }
                     else
                     {
-                        MASS_PRODUCER_RECORD[o] = s;
+                        ModEntry.MassProducerRecord[o] = s;
                     }
                 }
                 else if (!string.IsNullOrEmpty(s))
                 {
-                    MASS_PRODUCER_RECORD.Add(o, s);
+                    ModEntry.MassProducerRecord.Add(o, s);
                 }
 
                 ModEntry.MPMManager.OnMachineUpgradeKeyChanged(o);
             }
-            catch (Exception) { }
+            catch (Exception e)
+            {
+                ModEntry.Instance.Monitor.Log(e.ToString(), StardewModdingAPI.LogLevel.Error);
+            }
         }
     }
 }

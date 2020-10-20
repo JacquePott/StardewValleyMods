@@ -23,6 +23,7 @@ namespace MassProduction
         public static Dictionary<string, MPMSettings> MPMSettings { get; private set; }
         public static List<MassProductionMachineDefinition> MPMDefinitionSet { get; private set; }
         public static MPMManager MPMManager { get; private set; }
+        public static Dictionary<SObject, string> MassProducerRecord { get; private set; }
         public static ModEntry Instance;
 
         /// <summary>
@@ -34,6 +35,7 @@ namespace MassProduction
             Instance = this;
             MPMSettings = new Dictionary<string, MPMSettings>();
             MPMDefinitionSet = new List<MassProductionMachineDefinition>();
+            MassProducerRecord = new Dictionary<SObject, string>();
 
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -100,9 +102,9 @@ namespace MassProduction
         private void OnSaveLoaded(object sender, SaveLoadedEventArgs args)
         {
             //Clear out old data if any exists
-            ObjectExtensions.MASS_PRODUCER_RECORD.Clear();
             MPMSettings.Clear();
             MPMDefinitionSet.Clear();
+            MassProducerRecord.Clear();
             if (MPMManager != null)
             {
                 MPMManager.Clear();

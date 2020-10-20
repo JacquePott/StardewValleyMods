@@ -59,5 +59,17 @@
 	    "UnlockedUpgrade": "Golden",
 		"IsEndgame": true
 	  }
-	}
+	},
+	{
+	  "Key": "Unreliable",
+	  "UpgradeObject": "Unreliable Machine Kit",
+	  "BaseMultiplier": 1,
+	  "InputMultiplier": 4,
+	  "OutputMultiplierMin": 0,
+	  "OutputMultiplierMax": 14,
+	  "UnlockConditions":
+	  {
+	    "UnlockedUpgrade": "Basic"
+	  }
+	},
 ]
