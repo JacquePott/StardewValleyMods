@@ -12,6 +12,7 @@ using StardewValley.Network;
 using System.Reflection.Emit;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MassProduction.VanillaOverrides;
 
 namespace MassProduction
 {
@@ -50,7 +51,7 @@ namespace MassProduction
 
                     if (mpm == null)
                     {
-                        throw new RestrictionException("This cannot take that upgrade.");
+                        Game1.showRedMessage("This cannot take that upgrade.");
                     }
                     else
                     {
@@ -83,6 +84,23 @@ namespace MassProduction
                 MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(__instance.name, __instance.GetMassProducerKey());
 
                 if (mpm == null) { return true; }
+
+                if (StaticValues.SUPPORTED_VANILLA_MACHINES.Contains(__instance.name))
+                {
+                    IVanillaOverride vanillaOverride = VanillaOverrideList.GetFor(__instance.name);
+
+                    if (vanillaOverride != null)
+                    {
+                        bool overrideResult = vanillaOverride.Manual_PerformObjectDropInAction(__instance, input, probe, who, mpm);
+
+                        //End early if a result has been found
+                        if (overrideResult)
+                        {
+                            __result = input.Stack <= 0;
+                            return true;
+                        }
+                    }
+                }
 
                 ProducerConfig baseConfig = mpm.GetBaseProducerConfig();
                 GameLocation location = who.currentLocation;

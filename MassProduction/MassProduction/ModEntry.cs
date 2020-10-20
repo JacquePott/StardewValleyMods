@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Harmony;
 using MassProduction.Automate;
+using MassProduction.VanillaOverrides;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Pathoschild.Stardew.Automate;
@@ -19,7 +21,7 @@ namespace MassProduction
     public class ModEntry : Mod
     {
         public static Dictionary<string, MPMSettings> MPMSettings { get; private set; }
-        public static Dictionary<string, MassProductionMachineDefinition> MPMDefinitionSet { get; private set; }
+        public static List<MassProductionMachineDefinition> MPMDefinitionSet { get; private set; }
         public static MPMManager MPMManager { get; private set; }
         public static ModEntry Instance;
 
@@ -31,7 +33,7 @@ namespace MassProduction
         {
             Instance = this;
             MPMSettings = new Dictionary<string, MPMSettings>();
-            MPMDefinitionSet = new Dictionary<string, MassProductionMachineDefinition>();
+            MPMDefinitionSet = new List<MassProductionMachineDefinition>();
 
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -64,6 +66,14 @@ namespace MassProduction
             {
                 IAutomateAPI automate = Helper.ModRegistry.GetApi<IAutomateAPI>("Pathoschild.Automate");
                 automate.AddFactory(new MPMAutomationFactory());
+
+                Assembly automateAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.FullName.StartsWith("Automate,"));
+                Type automationFactoryType = automateAssembly.GetType("Pathoschild.Stardew.Automate.Framework.AutomationFactory");
+                MethodInfo methodInfo = AccessTools.GetDeclaredMethods(automationFactoryType).Find(m => m.GetParameters().Any(p => p.ParameterType == typeof(SObject)));
+                harmony.Patch(
+                    original: methodInfo,
+                    postfix: new HarmonyMethod(typeof(AutomateOverrides), nameof(AutomateOverrides.GetFor))
+                );
 
                 if (Helper.ModRegistry.IsLoaded("Digus.PFMAutomate"))
                 {
@@ -124,22 +134,13 @@ namespace MassProduction
 
             //Set up machines to work with PFM
             Monitor.Log("Defining machines...", LogLevel.Info);
-            List<MassProductionMachineDefinition> mpms = MassProductionMachineDefinition.Setup(MPMSettings);
-
-            foreach (MassProductionMachineDefinition mpm in mpms)
-            {
-                MPMDefinitionSet.Add(mpm.ProducerName, mpm);
-            }
+            MPMDefinitionSet = MassProductionMachineDefinition.Setup(MPMSettings);
+            SeedMakerOverride.Initialize();
 
             //Start manager, loading saved data
             MPMManager = new MPMManager();
             
             Helper.Events.GameLoop.Saving += OnSave;
-
-            //TODO
-            //- Saved dictionary doesn't contain any elements when loaded.
-            //  * Move to a new data structure
-            //  * Save to json files like JsonAssets and load those
         }
 
         /// <summary>
@@ -149,7 +150,7 @@ namespace MassProduction
         /// <returns></returns>
         public static IEnumerable<MassProductionMachineDefinition> GetMPMachinesBasedOn(string baseMachineName)
         {
-            return from mpm in MPMDefinitionSet.Values
+            return from mpm in MPMDefinitionSet
                    where mpm.BaseProducerName.Equals(baseMachineName)
                    select mpm;
         }
@@ -162,6 +163,11 @@ namespace MassProduction
         /// <returns></returns>
         public static MassProductionMachineDefinition GetMPMMachine(string baseMachineName, string settingsKey)
         {
+            if (string.IsNullOrEmpty(baseMachineName) || string.IsNullOrEmpty(settingsKey))
+            {
+                return null;
+            }
+
             return (from mpm in GetMPMachinesBasedOn(baseMachineName)
                     where mpm.Settings.Key.Equals(settingsKey)
                     select mpm).FirstOrDefault();

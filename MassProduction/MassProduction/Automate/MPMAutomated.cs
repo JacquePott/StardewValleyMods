@@ -75,7 +75,11 @@ namespace MassProduction.Automate
                 producerConfig = ProducerController.GetProducerConfig(Machine.name);
             }
 
-            if (producerConfig.NoInputStartMode != null || producerConfig.IncrementStatsOnOutput.Count > 0)
+            if (producerConfig == null)
+            {
+                return;
+            }
+            else if (producerConfig.NoInputStartMode != null || producerConfig.IncrementStatsOnOutput.Count > 0)
             {
                 producerConfig.IncrementStats(item);
                 if (producerConfig.NoInputStartMode == NoInputStartMode.Placement)

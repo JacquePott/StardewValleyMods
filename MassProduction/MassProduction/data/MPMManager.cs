@@ -27,12 +27,9 @@ namespace MassProduction
 
             try
             {
-                ModEntry.Instance.Monitor.Log("Entering MPMManager contructor.", LogLevel.Debug);
-
                 if (!Context.IsMultiplayer || Context.IsMainPlayer)
                 {
                     SavedMPMInfo[] SavedData = ModEntry.Instance.Helper.Data.ReadSaveData<SavedMPMInfo[]>(SAVE_KEY);
-                    ModEntry.Instance.Monitor.Log("SavedData = " + SavedData, LogLevel.Debug);
 
                     if (SavedData != null)
                     {
@@ -55,8 +52,6 @@ namespace MassProduction
                         }
                     }
                 }
-
-                ModEntry.Instance.Monitor.Log("Ended try block in MPMManager contructor.", LogLevel.Debug);
             }
             catch (Exception e)
             {
@@ -70,8 +65,6 @@ namespace MassProduction
         /// <param name="o"></param>
         public void OnMachineUpgradeKeyChanged(SObject o)
         {
-            ModEntry.Instance.Monitor.Log($"Entered MPMManager.OnMachineUpgradeKeyChanged. o = {o.name}; mp key = {o.GetMassProducerKey()}", LogLevel.Debug);
-
             foreach (GameLocation location in Game1.locations)
             {
                 if (location.Objects.ContainsKey(o.TileLocation) && location.Objects[o.TileLocation].Equals(o))
@@ -83,18 +76,15 @@ namespace MassProduction
                     {
                         if (string.IsNullOrEmpty(o.GetMassProducerKey()))
                         {
-                            ModEntry.Instance.Monitor.Log("Removed entry.", LogLevel.Debug);
                             UpgradedMachineLocations.Remove(query.First());
                         }
                         else
                         {
-                            ModEntry.Instance.Monitor.Log("Overwrote old entry.", LogLevel.Debug);
                             query.First().UpgradeKey = o.GetMassProducerKey();
                         }
                     }
                     else if (!string.IsNullOrEmpty(o.GetMassProducerKey()))
                     {
-                        ModEntry.Instance.Monitor.Log("Added new entry.", LogLevel.Debug);
                         UpgradedMachineLocations.Add(new SavedMPMInfo()
                         {
                             LocationName = location.Name,
@@ -107,8 +97,6 @@ namespace MassProduction
                     break;
                 }
             }
-
-            ModEntry.Instance.Monitor.Log("Exited MPMManager.OnMachineUpgradeKeyChanged.", LogLevel.Debug);
         }
 
         /// <summary>
