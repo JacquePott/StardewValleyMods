@@ -148,9 +148,9 @@ namespace MassProduction
                         PFMCompatability.ValidateIfInputStackLessThanRequired(producerRule, mpm.Settings, input);
                         PFMCompatability.ValidateIfAnyFuelStackLessThanRequired(producerRule, mpm.Settings, who);
 
-                        Func<int, int, bool> hasItemsInInventory = (i, q) => who.hasItemInInventory(i, mpm.Settings.CalculateInputRequired(q));
+                        Func<int, int, bool> fuelSearch = (i, q) => who.hasItemInInventory(i, mpm.Settings.CalculateInputRequired(q, i));
                         OutputConfig outputConfig = PFMCompatability.ProduceOutput(producerRule, mpm.Settings, __instance,
-                            hasItemsInInventory, who, location, baseConfig, input, probe);
+                            fuelSearch, who, location, baseConfig, input, probe);
 
                         if (outputConfig != null)
                         {
@@ -158,12 +158,12 @@ namespace MassProduction
                             {
                                 foreach (var fuel in producerRule.FuelList)
                                 {
-                                    RemoveItemsFromInventory(who, fuel.Item1, mpm.Settings.CalculateInputRequired(fuel.Item2));
+                                    RemoveItemsFromInventory(who, fuel.Item1, mpm.Settings.CalculateInputRequired(fuel.Item2, fuel.Item1));
                                 }
 
                                 foreach (var fuel in outputConfig.FuelList)
                                 {
-                                    RemoveItemsFromInventory(who, fuel.Item1, mpm.Settings.CalculateInputRequired(fuel.Item2));
+                                    RemoveItemsFromInventory(who, fuel.Item1, mpm.Settings.CalculateInputRequired(fuel.Item2, fuel.Item1));
                                 }
 
                                 input.Stack -= mpm.Settings.CalculateInputRequired(producerRule.InputStack);

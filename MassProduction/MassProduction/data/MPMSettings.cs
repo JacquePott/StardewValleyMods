@@ -1,12 +1,11 @@
 ﻿using MailFrameworkMod;
-using ProducerFrameworkMod.ContentPack;
+using StardewModdingAPI;
 using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using JsonAssetsIngredient = JsonAssets.Data.BigCraftableData.Recipe_.Ingredient;
 
 namespace MassProduction
 {
@@ -30,6 +29,7 @@ namespace MassProduction
         public string InputRequirement { get; set; } = "InputRequired";
         public QualitySetting Quality { get; set; } = QualitySetting.NoStars;
         public Dictionary<string, object> UnlockConditions { get; set; }
+        public string[] FuelIgnore { get; set; } = new string[0];
 
         public int UpgradeObjectID
         {
@@ -67,6 +67,28 @@ namespace MassProduction
             if (inputRequired < 1) { inputRequired = 1; }
 
             return inputRequired;
+        }
+
+        /// <summary>
+        /// Find what new input is required. Used for fuel specifically to allow ignoring fuel requirements.
+        /// </summary>
+        /// <param name="baseInputStack"></param>
+        /// <param name="fuelID"></param>
+        /// <param name="fuelName"></param>
+        /// <returns></returns>
+        public int CalculateInputRequired(int baseInputStack, int fuelID)
+        {
+            Dictionary<int, string> objects = ModEntry.Instance.Helper.Content.Load<Dictionary<int, string>>("Data\\ObjectInformation", ContentSource.GameContent);
+            string fuelName = PFMCompatability.GetObjectName(objects[fuelID]);
+
+            if (FuelIgnore.Contains(fuelID.ToString()) || FuelIgnore.Contains(fuelName))
+            {
+                return 0;
+            }
+            else
+            {
+                return CalculateInputRequired(baseInputStack);
+            }
         }
 
         /// <summary>

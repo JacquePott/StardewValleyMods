@@ -72,4 +72,15 @@
 	    "UnlockedUpgrade": "Basic"
 	  }
 	},
+	{
+	  "Key": "Electric",
+	  "UpgradeObject": "Electric Machine Kit",
+	  "BaseMultiplier": 10,
+	  "FuelIgnore": ["382", "787"],
+	  "UnlockConditions":
+	  {
+	    "UnlockedUpgrade": "Basic",
+		"TotalEarnings": 200000
+	  }
+	},
 ]

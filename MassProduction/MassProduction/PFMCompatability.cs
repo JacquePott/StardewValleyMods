@@ -59,15 +59,17 @@ namespace MassProduction
         /// Check if a farmer has the required fules and stack for a given producer rule.
         /// Adapted from https://github.com/Digus/StardewValleyMods/blob/master/ProducerFrameworkMod/ProducerRuleController.cs
         /// </summary>
-        /// <param name="producerRule">the producer tule to check</param>
-        /// <param name="who">The farmer to check</param>
+        /// <param name="producerRule">The producer rule to check.</param>
+        /// <param name="settings">The machine's mass production settings.</param>
+        /// <param name="who">The farmer to check.</param>
         public static void ValidateIfAnyFuelStackLessThanRequired(ProducerRule producerRule, MPMSettings settings, Farmer who)
         {
             foreach (Tuple<int, int> fuel in producerRule.FuelList)
             {
-                if (!who.hasItemInInventory(fuel.Item1, fuel.Item2))
+                int quantityRequired = settings.CalculateInputRequired(fuel.Item2, fuel.Item1);
+
+                if (!who.hasItemInInventory(fuel.Item1, quantityRequired))
                 {
-                    int quantityRequired = settings.CalculateInputRequired(fuel.Item2);
                     string objectName;
 
                     if (fuel.Item1 >= 0)

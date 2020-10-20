@@ -181,7 +181,7 @@ namespace MassProduction.Automate
                                     try
                                     {
                                         Func<int, int, bool> fuelSearch = (i, q) =>
-                                            input.TryGetIngredient(i, mpm.Settings.CalculateInputRequired(q),
+                                            input.TryGetIngredient(i, mpm.Settings.CalculateInputRequired(q, i),
                                             out IConsumable fuel);
                                         OutputConfig outputConfig = PFMCompatability.ProduceOutput(producerRule, mpm.Settings, Machine, fuelSearch, null, Location, producerConfig,
                                             objectInput, noSoundAndAnimation: true);
@@ -204,8 +204,6 @@ namespace MassProduction.Automate
             }
             else
             {
-                //ModEntry.Instance.Monitor.Log($"SetInput: {Machine.name} at {Location.name} ({TileArea.X}, {TileArea.Y}) doesn't count as mass producer.",
-                //    StardewModdingAPI.LogLevel.Debug);
                 foreach (ITrackedStack trackedStack in input.GetItems())
                 {
                     if (trackedStack.Sample is SObject objectInput && !objectInput.bigCraftable.Value &&
@@ -261,7 +259,10 @@ namespace MassProduction.Automate
             List<IConsumable> requiredFuels = new List<IConsumable>();
             foreach (Tuple<int, int> requiredFuel in producerRule.FuelList)
             {
-                int quantity = (settings != null) ? settings.CalculateInputRequired(requiredFuel.Item2) : requiredFuel.Item2;
+                int quantity = (settings != null) ? settings.CalculateInputRequired(requiredFuel.Item2, requiredFuel.Item1) : requiredFuel.Item2;
+
+                if (quantity == 0) { continue; }
+
                 if (!storage.TryGetIngredient(requiredFuel.Item1, quantity, out IConsumable fuel))
                 {
                     return null;
@@ -283,7 +284,10 @@ namespace MassProduction.Automate
             List<IConsumable> requiredFuels = new List<IConsumable>();
             foreach (Tuple<int, int> requiredFuel in outputConfig.FuelList)
             {
-                int quantity = (settings != null) ? settings.CalculateInputRequired(requiredFuel.Item2) : requiredFuel.Item2;
+                int quantity = (settings != null) ? settings.CalculateInputRequired(requiredFuel.Item2, requiredFuel.Item1) : requiredFuel.Item2;
+
+                if (quantity == 0) { continue; }
+
                 if (!storage.TryGetIngredient(requiredFuel.Item1, quantity, out IConsumable fuel))
                 {
                     return null;
