@@ -16,14 +16,14 @@ namespace MassProduction
     public class MPMManager
     {
         public const string SAVE_KEY = "UpgradedMachineLocations";
-        private List<SavedMPMInfo> UpgradedMachineLocations;
+        private Dictionary<string, string> UpgradedMachineLocations;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         public MPMManager()
         {
-            UpgradedMachineLocations = new List<SavedMPMInfo>();
+            UpgradedMachineLocations = new Dictionary<string, string>();
 
             try
             {
@@ -33,7 +33,10 @@ namespace MassProduction
 
                     if (SavedData != null)
                     {
-                        UpgradedMachineLocations.AddRange(SavedData);
+                        foreach (SavedMPMInfo info in SavedData)
+                        {
+                            UpgradedMachineLocations.Add(info.GetIDString(), info.UpgradeKey);
+                        }
                     }
                 }
             }
@@ -51,31 +54,17 @@ namespace MassProduction
         {
             foreach (GameLocation location in Game1.locations)
             {
-                if (location.Objects.ContainsKey(o.TileLocation) && location.Objects[o.TileLocation].Equals(o))
+                if (location.objects.Values.Contains(o))
                 {
-                    IEnumerable<SavedMPMInfo> query = from info in UpgradedMachineLocations
-                                                      where info.LocationName.Equals(location.Name) && info.GetCoordinates().Equals(o.TileLocation)
-                                                      select info;
-                    if (query.Count() > 0)
+                    string idString = GetIdString(location, o);
+
+                    if (UpgradedMachineLocations.ContainsKey(idString))
                     {
-                        if (string.IsNullOrEmpty(newUpgradeKey))
-                        {
-                            UpgradedMachineLocations.Remove(query.First());
-                        }
-                        else
-                        {
-                            query.First().UpgradeKey = newUpgradeKey;
-                        }
+                        UpgradedMachineLocations[idString] = newUpgradeKey;
                     }
-                    else if (!string.IsNullOrEmpty(newUpgradeKey))
+                    else
                     {
-                        UpgradedMachineLocations.Add(new SavedMPMInfo()
-                        {
-                            LocationName = location.Name,
-                            CoordinateX = (int)o.TileLocation.X,
-                            CoordinateY = (int)o.TileLocation.Y,
-                            UpgradeKey = newUpgradeKey
-                        });
+                        UpgradedMachineLocations.Add(idString, newUpgradeKey);
                     }
 
                     break;
@@ -86,21 +75,18 @@ namespace MassProduction
         /// <summary>
         /// Removes a machine from tracking by location and coordinates.
         /// </summary>
-        /// <param name="locationName"></param>
-        /// <param name="coordinates"></param>
-        /// <returns>The upgrade key of the removed machine. Empty string if none found.</returns>
-        public string Remove(string locationName, Vector2 coordinates)
+        /// <param name="location"></param>
+        /// <param name="o"></param>
+        /// <returns>The upgrade key of the removed machine. Empty string or null if none found.</returns>
+        public string Remove(GameLocation location, SObject o)
         {
-            IEnumerable<SavedMPMInfo> query = from info in UpgradedMachineLocations
-                                              where info.LocationName.Equals(locationName) && info.GetCoordinates().Equals(coordinates)
-                                              select info;
+            string idString = GetIdString(location, o);
             string upgradeKey = "";
 
-            foreach (SavedMPMInfo info in query.ToArray())
+            if (UpgradedMachineLocations.ContainsKey(idString))
             {
-                UpgradedMachineLocations.Remove(info);
-                upgradeKey = info.UpgradeKey;
-                ModEntry.Instance.Monitor.Log($"Removed machine in {locationName} ({coordinates}) from tracking.", LogLevel.Debug);
+                upgradeKey = UpgradedMachineLocations[idString];
+                UpgradedMachineLocations.Remove(idString);
             }
 
             return upgradeKey;
@@ -115,14 +101,17 @@ namespace MassProduction
         {
             foreach (GameLocation location in Game1.locations)
             {
-                if (location.Objects.ContainsKey(o.TileLocation) && location.Objects[o.TileLocation].Equals(o))
+                if (location.objects.Values.Contains(o))
                 {
-                    IEnumerable<SavedMPMInfo> query = from info in UpgradedMachineLocations
-                                                      where info.LocationName.Equals(location.Name) && info.GetCoordinates().Equals(o.TileLocation)
-                                                      select info;
-                    if (query.Count() > 0)
+                    string idString = GetIdString(location, o);
+
+                    if (UpgradedMachineLocations.ContainsKey(idString))
                     {
-                        return query.First().UpgradeKey;
+                        return UpgradedMachineLocations[idString];
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
             }
@@ -135,7 +124,27 @@ namespace MassProduction
         /// </summary>
         public void Save()
         {
-            ModEntry.Instance.Helper.Data.WriteSaveData(SAVE_KEY, UpgradedMachineLocations.ToArray());
+            List<SavedMPMInfo> saveData = new List<SavedMPMInfo>();
+
+            foreach (string idString in UpgradedMachineLocations.Keys)
+            {
+                string[] idParts = idString.Split('_');
+                int yIndex = idParts.Length - 1;
+                int xIndex = yIndex - 1;
+                string locationName = string.Join("_", idParts.Take(idParts.Length - 2));
+
+                SavedMPMInfo info = new SavedMPMInfo()
+                {
+                    LocationName = locationName,
+                    CoordinateX = int.Parse(idParts[xIndex]),
+                    CoordinateY = int.Parse(idParts[yIndex]),
+                    UpgradeKey = UpgradedMachineLocations[idString]
+                };
+
+                saveData.Add(info);
+            }
+
+            ModEntry.Instance.Helper.Data.WriteSaveData(SAVE_KEY, saveData.ToArray());
         }
 
         /// <summary>
@@ -144,6 +153,17 @@ namespace MassProduction
         public void Clear()
         {
             UpgradedMachineLocations.Clear();
+        }
+
+        /// <summary>
+        /// Converts an object and it's location into an identifier string to save it's upgrade key data.
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="o"></param>
+        /// <returns></returns>
+        public static string GetIdString(GameLocation location, SObject o)
+        {
+            return $"{location.name}_{o.TileLocation.X}_{o.TileLocation.Y}";
         }
     }
 }

@@ -19,5 +19,10 @@ namespace MassProduction
         {
             return new Vector2(CoordinateX, CoordinateY);
         }
+
+        public string GetIDString()
+        {
+            return $"{LocationName}_{CoordinateX}_{CoordinateY}";
+        }
     }
 }

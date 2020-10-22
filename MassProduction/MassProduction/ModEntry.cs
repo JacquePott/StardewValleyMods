@@ -205,33 +205,32 @@ namespace MassProduction
         {
             if (e.Removed.Count() > 0)
             {
-                Dictionary<string, List<Vector2>> toReturnCoords = new Dictionary<string, List<Vector2>>();
+                Dictionary<string, List<SObject>> toReturn = new Dictionary<string, List<SObject>>();
 
                 foreach (var pair in e.Removed)
                 {
-                    string returnUpgradeKey = MPMManager.Remove(e.Location.name, pair.Key);
+                    string returnUpgradeKey = MPMManager.Remove(e.Location, pair.Value);
 
                     if (!string.IsNullOrEmpty(returnUpgradeKey))
                     {
-                        if (toReturnCoords.ContainsKey(returnUpgradeKey))
+                        if (toReturn.ContainsKey(returnUpgradeKey))
                         {
-                            toReturnCoords[returnUpgradeKey].Add(pair.Key);
+                            toReturn[returnUpgradeKey].Add(pair.Value);
                         }
                         else
                         {
-                            toReturnCoords.Add(returnUpgradeKey, new List<Vector2>() { pair.Key });
+                            toReturn.Add(returnUpgradeKey, new List<SObject>() { pair.Value });
                         }
                     }
                 }
 
-                foreach (string upgradeKey in toReturnCoords.Keys)
+                foreach (string upgradeKey in toReturn.Keys)
                 {
                     int itemId = MPMSettings[upgradeKey].UpgradeObjectID;
 
-                    foreach (Vector2 coord in toReturnCoords[upgradeKey])
+                    foreach (SObject o in toReturn[upgradeKey])
                     {
-                        Game1.createItemDebris(new SObject(itemId, 1), coord * Game1.tileSize, 0, e.Location);
-                        MPMManager.Remove(e.Location.name, coord);
+                        Game1.createItemDebris(new SObject(itemId, 1), o.TileLocation * Game1.tileSize, 0, e.Location);
                     }
                 }
             }
