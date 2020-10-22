@@ -16,9 +16,12 @@
     {
       "UniqueID": "Digus.ProducerFrameworkMod"
     },
-	  {
-	    "UniqueID": "DIGUS.MailFrameworkMod"
-	  },
+    {
+      "UniqueID": "DIGUS.MailFrameworkMod"
+    },
+    {
+      "UniqueID": "Digus.CustomProducerMod"
+    },
     {
       "UniqueID": "Pathoschild.Automate",
       "IsRequired": false

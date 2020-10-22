@@ -42,19 +42,29 @@ namespace MassProduction.Automate
             }
             else
             {
-                // Check for special overriding logic, if any is required
-                string originalClassName = OriginalMachine.GetType().FullName;
+                MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(OriginalMachineObject.name, OriginalMachineObject.GetMassProducerKey());
 
-                if (VanillaOverrideList.GetFor(originalClassName) != null)
+                if (mpm != null)
                 {
-                    IVanillaOverride vanillaOverride = VanillaOverrideList.GetFor(originalClassName);
-                    MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(OriginalMachineObject.name, OriginalMachineObject.GetMassProducerKey());
-                    overrideOutput = vanillaOverride.Automate_GetOutput(mpm, OriginalMachine, OriginalMachineObject);
+                    // Check for special overriding logic, if any is required
+                    string originalClassName = OriginalMachine.GetType().FullName;
 
-                    if (overrideOutput != null) { return overrideOutput; }
+                    if (VanillaOverrideList.GetFor(originalClassName) != null)
+                    {
+                        IVanillaOverride vanillaOverride = VanillaOverrideList.GetFor(originalClassName);
+                        overrideOutput = vanillaOverride.Automate_GetOutput(mpm, OriginalMachine, OriginalMachineObject);
+
+                        return overrideOutput;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
-
-                return OriginalMachine.GetOutput();
+                else
+                {
+                    return OriginalMachine.GetOutput();
+                }
             }
         }
 
@@ -71,18 +81,28 @@ namespace MassProduction.Automate
             }
             else
             {
-                //Check for special overriding logic, if any is required
-                string originalClassName = OriginalMachine.GetType().FullName;
+                MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(OriginalMachineObject.name, OriginalMachineObject.GetMassProducerKey());
 
-                if (VanillaOverrideList.GetFor(originalClassName) != null)
+                if (mpm != null)
                 {
-                    IVanillaOverride vanillaOverride = VanillaOverrideList.GetFor(originalClassName);
-                    MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(OriginalMachineObject.name, OriginalMachineObject.GetMassProducerKey());
+                    //Check for special overriding logic, if any is required
+                    string originalClassName = OriginalMachine.GetType().FullName;
 
-                    return vanillaOverride.Automate_SetInput(input, mpm, OriginalMachine, OriginalMachineObject);
+                    if (VanillaOverrideList.GetFor(originalClassName) != null)
+                    {
+                        IVanillaOverride vanillaOverride = VanillaOverrideList.GetFor(originalClassName);
+
+                        return vanillaOverride.Automate_SetInput(input, mpm, OriginalMachine, OriginalMachineObject);
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
-
-                return OriginalMachine.SetInput(input);
+                else
+                {
+                    return OriginalMachine.SetInput(input);
+                }
             }
         }
     }

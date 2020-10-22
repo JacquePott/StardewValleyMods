@@ -231,27 +231,33 @@ namespace MassProduction
         /// <param name="alpha"></param>
         public static void Draw_Postfix(SObject __instance, SpriteBatch spriteBatch, int x, int y, float alpha)
         {
-            if (!string.IsNullOrEmpty(__instance.GetMassProducerKey()) && ModEntry.MPMSettings[__instance.GetMassProducerKey()] != null)
+            try
             {
-                int upgradeId = ModEntry.MPMSettings[__instance.GetMassProducerKey()].UpgradeObjectID;
+                if (!string.IsNullOrEmpty(__instance.GetMassProducerKey()) && ModEntry.MPMSettings[__instance.GetMassProducerKey()] != null)
+                {
+                    int upgradeId = ModEntry.MPMSettings[__instance.GetMassProducerKey()].UpgradeObjectID;
 
-                float scale = 0.6f;
-                float drawLayer = Math.Max(0f, ((y + 1) * 64 - 24) / 10000f) + x * 1E-05f;
-                float drawLayerOffset = 1E-05f; // The SpriteBatch layer depth needs to be slightly larger to avoid z-fighting
+                    float scale = 0.6f;
+                    float drawLayer = Math.Max(0f, ((y + 1) * 64 - 24) / 10000f) + x * 1E-05f;
+                    float drawLayerOffset = 1E-05f; // The SpriteBatch layer depth needs to be slightly larger to avoid z-fighting
 
-                Vector2 position = Game1.GlobalToLocal(Game1.viewport, new Vector2(x * Game1.tileSize, y * Game1.tileSize));
-                spriteBatch.Draw(Game1.mouseCursors, position, GetPrimaryIconSourceRect(2), Color.White, 0f, Vector2.Zero, 4f * scale, SpriteEffects.None, drawLayer + drawLayerOffset);
+                    Vector2 position = Game1.GlobalToLocal(Game1.viewport, new Vector2(x * Game1.tileSize, y * Game1.tileSize));
+                    spriteBatch.Draw(Game1.mouseCursors, position, GetPrimaryIconSourceRect(2), Color.White, 0f, Vector2.Zero, 4f * scale, SpriteEffects.None, drawLayer + drawLayerOffset);
 
-                Vector2 bottomLeftPosition = new Vector2(position.X, position.Y + 64f * scale);
+                    Vector2 bottomLeftPosition = new Vector2(position.X, position.Y + 64f * scale);
 
-                Texture2D spritesheet = Game1.objectSpriteSheet;
-                Tuple<int, int> spriteCoordinates = ImageHelper.GetObjectSpritesheetIndex(spritesheet.Width, spritesheet.Height, upgradeId);
-                float iconScale = 2f;
-                Rectangle sourceRectangle = new Rectangle(spriteCoordinates.Item1, spriteCoordinates.Item2, 16, 16);
-                Vector2 spriteDestination = bottomLeftPosition + new Vector2(4f * scale, -4f * scale - sourceRectangle.Height * iconScale * scale);
-                float spriteLayerDepth = drawLayer + drawLayerOffset + 1E-04f;
+                    Texture2D spritesheet = Game1.objectSpriteSheet;
+                    Tuple<int, int> spriteCoordinates = ImageHelper.GetObjectSpritesheetIndex(spritesheet.Width, spritesheet.Height, upgradeId);
+                    float iconScale = 2f;
+                    Rectangle sourceRectangle = new Rectangle(spriteCoordinates.Item1, spriteCoordinates.Item2, 16, 16);
+                    Vector2 spriteDestination = bottomLeftPosition + new Vector2(4f * scale, -4f * scale - sourceRectangle.Height * iconScale * scale);
+                    float spriteLayerDepth = drawLayer + drawLayerOffset + 1E-04f;
 
-                spriteBatch.Draw(spritesheet, spriteDestination, sourceRectangle, Color.White * 1f, 0f, new Vector2(0, 0), scale * iconScale, SpriteEffects.None, spriteLayerDepth);
+                    spriteBatch.Draw(spritesheet, spriteDestination, sourceRectangle, Color.White * 1f, 0f, new Vector2(0, 0), scale * iconScale, SpriteEffects.None, spriteLayerDepth);
+                }
+            }
+            catch
+            { //Ignore errors that come up when first loading a save and can't access __instance.GetMassProducerKey()
             }
         }
 

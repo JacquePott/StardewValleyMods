@@ -14,17 +14,22 @@ namespace MassProduction.VanillaOverrides
         /// <inheritdoc/>
         public ITrackedStack Automate_GetOutput(MassProductionMachineDefinition mpm, IMachine originalMachine, SObject originalMachineObject)
         {
-            int baitID = 685;
-            int quantityProduced = mpm.Settings.CalculateOutputProduced(Game1.random.Next(2, 6));
-            int timeRequired = mpm.Settings.CalculateTimeRequired(2600 - Game1.timeOfDay);
-
-            return new TrackedItem(originalMachineObject.heldObject.Value, item =>
+            if (mpm != null)
             {
-                originalMachineObject.heldObject.Value = new SObject(baitID, quantityProduced);
-                originalMachineObject.MinutesUntilReady = timeRequired;
-                originalMachineObject.readyForHarvest.Value = false;
-                originalMachineObject.showNextIndex.Value = false;
-            });
+                int baitID = 685;
+                int quantityProduced = mpm.Settings.CalculateOutputProduced(Game1.random.Next(2, 6));
+                int timeRequired = mpm.Settings.CalculateTimeRequired(2600 - Game1.timeOfDay);
+
+                return new TrackedItem(originalMachineObject.heldObject.Value, item =>
+                {
+                    originalMachineObject.heldObject.Value = new SObject(baitID, quantityProduced);
+                    originalMachineObject.MinutesUntilReady = timeRequired;
+                    originalMachineObject.readyForHarvest.Value = false;
+                    originalMachineObject.showNextIndex.Value = false;
+                });
+            }
+
+            return originalMachine.GetOutput();
         }
 
         /// <inheritdoc/>

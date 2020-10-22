@@ -23,8 +23,13 @@ namespace MassProduction
         public static Dictionary<string, MPMSettings> MPMSettings { get; private set; }
         public static List<MassProductionMachineDefinition> MPMDefinitionSet { get; private set; }
         public static MPMManager MPMManager { get; private set; }
-        public static Dictionary<SObject, string> MassProducerRecord { get; private set; }
         public static ModEntry Instance;
+
+        static ModEntry()
+        {
+            MPMSettings = new Dictionary<string, MPMSettings>();
+            MPMDefinitionSet = new List<MassProductionMachineDefinition>();
+        }
 
         /// <summary>
         /// Runs when the mod is loaded.
@@ -33,9 +38,6 @@ namespace MassProduction
         public override void Entry(IModHelper helper)
         {
             Instance = this;
-            MPMSettings = new Dictionary<string, MPMSettings>();
-            MPMDefinitionSet = new List<MassProductionMachineDefinition>();
-            MassProducerRecord = new Dictionary<SObject, string>();
 
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -104,7 +106,6 @@ namespace MassProduction
             //Clear out old data if any exists
             MPMSettings.Clear();
             MPMDefinitionSet.Clear();
-            MassProducerRecord.Clear();
             if (MPMManager != null)
             {
                 MPMManager.Clear();
@@ -204,33 +205,32 @@ namespace MassProduction
         {
             if (e.Removed.Count() > 0)
             {
-                Dictionary<string, int> toReturn = new Dictionary<string, int>();
                 Dictionary<string, List<Vector2>> toReturnCoords = new Dictionary<string, List<Vector2>>();
 
                 foreach (var pair in e.Removed)
                 {
-                    if (!string.IsNullOrEmpty(pair.Value.GetMassProducerKey()))
+                    string returnUpgradeKey = MPMManager.Remove(e.Location.name, pair.Key);
+
+                    if (!string.IsNullOrEmpty(returnUpgradeKey))
                     {
-                        if (toReturn.ContainsKey(pair.Value.GetMassProducerKey()))
+                        if (toReturnCoords.ContainsKey(returnUpgradeKey))
                         {
-                            toReturn[pair.Value.GetMassProducerKey()]++;
-                            toReturnCoords[pair.Value.GetMassProducerKey()].Add(pair.Key);
+                            toReturnCoords[returnUpgradeKey].Add(pair.Key);
                         }
                         else
                         {
-                            toReturn.Add(pair.Value.GetMassProducerKey(), 1);
-                            toReturnCoords.Add(pair.Value.GetMassProducerKey(), new List<Vector2>() { pair.Key });
+                            toReturnCoords.Add(returnUpgradeKey, new List<Vector2>() { pair.Key });
                         }
                     }
                 }
 
-                foreach (string upgradeKey in toReturn.Keys)
+                foreach (string upgradeKey in toReturnCoords.Keys)
                 {
                     int itemId = MPMSettings[upgradeKey].UpgradeObjectID;
 
                     foreach (Vector2 coord in toReturnCoords[upgradeKey])
                     {
-                        Game1.createItemDebris(new SObject(itemId, toReturn[upgradeKey]), coord * Game1.tileSize, 0, e.Location);
+                        Game1.createItemDebris(new SObject(itemId, 1), coord * Game1.tileSize, 0, e.Location);
                         MPMManager.Remove(e.Location.name, coord);
                     }
                 }
