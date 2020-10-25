@@ -360,7 +360,7 @@ namespace MassProduction
         [HarmonyPriority(Priority.First + 1)] //Just before ProducerFrameworkMod. Can't use HarmonyBefore attribute, that wasn't working for some reason
         public static bool DayUpdate_Prefix(SObject __instance, GameLocation location)
         {
-            if (string.IsNullOrEmpty(__instance.GetMassProducerKey())) { return true; }
+            if (__instance == null || string.IsNullOrEmpty(__instance.GetMassProducerKey())) { return true; }
 
             MassProductionMachineDefinition mpm = ModEntry.GetMPMMachine(__instance.name, __instance.GetMassProducerKey());
 
