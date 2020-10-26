@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Locations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +53,7 @@ namespace MassProduction
         /// <param name="o"></param>
         public void OnMachineUpgradeKeyChanged(SObject o, string newUpgradeKey)
         {
-            foreach (GameLocation location in Game1.locations)
+            foreach (GameLocation location in GetAllLocations())
             {
                 if (location.objects.Values.Contains(o))
                 {
@@ -99,7 +100,7 @@ namespace MassProduction
         /// <returns></returns>
         public string GetUpgradeKey(SObject o)
         {
-            foreach (GameLocation location in Game1.locations)
+            foreach (GameLocation location in GetAllLocations())
             {
                 if (location.objects.Values.Contains(o))
                 {
@@ -156,6 +157,33 @@ namespace MassProduction
         }
 
         /// <summary>
+        /// Gets all exterior and interior locations.
+        /// </summary>
+        /// <returns></returns>
+        private List<GameLocation> GetAllLocations()
+        {
+            List<GameLocation> allLocations = new List<GameLocation>();
+
+            foreach (GameLocation location in Game1.locations)
+            {
+                allLocations.Add(location);
+
+                if (location is BuildableGameLocation buildable)
+                {
+                    foreach (StardewValley.Buildings.Building building in buildable.buildings)
+                    {
+                        if (building.indoors.Value != null)
+                        {
+                            allLocations.Add(building.indoors.Value);
+                        }
+                    }
+                }
+            }
+
+            return allLocations;
+        }
+
+        /// <summary>
         /// Converts an object and it's location into an identifier string to save it's upgrade key data.
         /// </summary>
         /// <param name="location"></param>
@@ -163,7 +191,7 @@ namespace MassProduction
         /// <returns></returns>
         public static string GetIdString(GameLocation location, SObject o)
         {
-            return $"{location.name}_{o.TileLocation.X}_{o.TileLocation.Y}";
+            return $"{location.NameOrUniqueName}_{o.TileLocation.X}_{o.TileLocation.Y}";
         }
     }
 }
