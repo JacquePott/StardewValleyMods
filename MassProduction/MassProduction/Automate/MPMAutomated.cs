@@ -19,7 +19,19 @@ namespace MassProduction.Automate
     {
         protected SObject Machine;
 
-        public string MachineTypeID { get { return "MassProduction." + Machine.Name; } }
+        public string MachineTypeID
+        {
+            get
+            {
+                string mpKey = Machine.GetMassProducerKey();
+                string machineID = "MassProduction." + Machine.Name;
+                if (!string.IsNullOrEmpty(mpKey))
+                {
+                    machineID += "." + mpKey;
+                }
+                return machineID;
+            }
+        }
         public GameLocation Location { get; protected set; }
         public Rectangle TileArea { get; protected set; }
 
