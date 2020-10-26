@@ -145,28 +145,44 @@ namespace MassProduction
                             throw new RestrictionException("Machine can't be used in this season.");
                         }
 
-                        PFMCompatability.ValidateIfInputStackLessThanRequired(producerRule, mpm.Settings, input);
-                        PFMCompatability.ValidateIfAnyFuelStackLessThanRequired(producerRule, mpm.Settings, who);
+                        List<InputInfo> inputAndFuelInfo = InputInfo.ConvertPFMInputs(producerRule, input);
+                        PFMCompatability.ValidateIfInputsLessThanRequired(producerRule, mpm.Settings, inputAndFuelInfo, who);
 
-                        Func<int, int, bool> fuelSearch = (i, q) => who.hasItemInInventory(i, mpm.Settings.CalculateInputRequired(q, i));
+                        Dictionary<int, int> fuelQuantities = new Dictionary<int, int>();
+
+                        foreach (InputInfo inputInfo in inputAndFuelInfo)
+                        {
+                            if (inputInfo.IsFuel)
+                            {
+                                fuelQuantities.Add(inputInfo.ID, mpm.Settings.CalculateInputRequired(inputInfo));
+                            }
+                        }
+
+                        Func<int, int, bool> fuelSearch = (i, q) => who.hasItemInInventory(i, fuelQuantities[i]);
                         OutputConfig outputConfig = PFMCompatability.ProduceOutput(producerRule, mpm.Settings, __instance,
-                            fuelSearch, who, location, baseConfig, input, probe);
+                            fuelSearch, who, location, baseConfig, input, mpm.Settings.CalculateInputRequired(inputAndFuelInfo.First()), probe,
+                            inputInfo: inputAndFuelInfo);
 
                         if (outputConfig != null)
                         {
                             if (!probe)
                             {
-                                foreach (var fuel in producerRule.FuelList)
+                                foreach (InputInfo inputInfo in inputAndFuelInfo)
                                 {
-                                    RemoveItemsFromInventory(who, fuel.Item1, mpm.Settings.CalculateInputRequired(fuel.Item2, fuel.Item1));
+                                    if (inputInfo.IsFuel)
+                                    {
+                                        RemoveItemsFromInventory(who, inputInfo.ID, mpm.Settings.CalculateInputRequired(inputInfo));
+                                    }
                                 }
 
-                                foreach (var fuel in outputConfig.FuelList)
+                                List<InputInfo> outputConfigFuels = InputInfo.ConvertPFMInputs(outputConfig);
+
+                                foreach (InputInfo fuel in outputConfigFuels)
                                 {
-                                    RemoveItemsFromInventory(who, fuel.Item1, mpm.Settings.CalculateInputRequired(fuel.Item2, fuel.Item1));
+                                    RemoveItemsFromInventory(who, fuel.ID, mpm.Settings.CalculateInputRequired(fuel));
                                 }
 
-                                input.Stack -= mpm.Settings.CalculateInputRequired(producerRule.InputStack);
+                                input.Stack -= mpm.Settings.CalculateInputRequired(inputAndFuelInfo.First());
                                 __result = input.Stack <= 0;
                             }
                             else

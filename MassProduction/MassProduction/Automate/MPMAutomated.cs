@@ -170,27 +170,38 @@ namespace MassProduction.Automate
 
                         if (producerConfig == null || (producerConfig.CheckLocationCondition(Location) && producerConfig.CheckSeasonCondition()))
                         {
-                            if (input.TryGetIngredient(objectInput.ParentSheetIndex, mpm.Settings.CalculateInputRequired(producerRule.InputStack),
-                                out IConsumable inputConsumable))
+                            List<InputInfo> inputsRequired = InputInfo.ConvertPFMInputs(producerRule, objectInput);
+
+                            if (inputsRequired.Count > 0 &&
+                                input.TryGetIngredient(objectInput.ParentSheetIndex, mpm.Settings.CalculateInputRequired(inputsRequired.First()), out IConsumable inputConsumable))
                             {
                                 objectInput = inputConsumable.Sample as SObject;
-                                List<IConsumable> requiredFuels = GetRequiredFuels(producerRule, mpm.Settings, input);
+                                List<IConsumable> requiredFuels = GetRequiredFuels(inputsRequired, mpm.Settings, input);
 
                                 if (requiredFuels != null)
                                 {
                                     try
                                     {
-                                        Func<int, int, bool> fuelSearch = (i, q) =>
-                                            input.TryGetIngredient(i, mpm.Settings.CalculateInputRequired(q, i),
-                                            out IConsumable fuel);
+                                        Dictionary<int, int> fuelQuantities = new Dictionary<int, int>();
+
+                                        foreach (InputInfo inputInfo in inputsRequired)
+                                        {
+                                            if (inputInfo.IsFuel)
+                                            {
+                                                fuelQuantities.Add(inputInfo.ID, mpm.Settings.CalculateInputRequired(inputInfo));
+                                            }
+                                        }
+
+                                        Func<int, int, bool> fuelSearch = (i, q) => input.TryGetIngredient(i, fuelQuantities[i], out IConsumable fuel);
                                         OutputConfig outputConfig = PFMCompatability.ProduceOutput(producerRule, mpm.Settings, Machine, fuelSearch, null, Location, producerConfig,
-                                            objectInput, noSoundAndAnimation: true);
+                                            objectInput, inputQuantity: mpm.Settings.CalculateInputRequired(inputsRequired.First()), noSoundAndAnimation: true,
+                                            inputInfo: inputsRequired);
 
                                         if (outputConfig != null)
                                         {
                                             inputConsumable.Take();
                                             requiredFuels.ForEach(f => f.Reduce());
-                                            List<IConsumable> outputRequiredFuels = GetRequiredFuels(outputConfig, mpm.Settings, input);
+                                            List<IConsumable> outputRequiredFuels = GetRequiredFuels(InputInfo.ConvertPFMInputs(outputConfig), mpm.Settings, input);
                                             outputRequiredFuels.ForEach(f => f.Reduce());
                                             return true;
                                         }
@@ -217,7 +228,7 @@ namespace MassProduction.Automate
                             if (input.TryGetIngredient(objectInput.ParentSheetIndex, producerRule.InputStack, out IConsumable inputConsumable))
                             {
                                 objectInput = inputConsumable.Sample as SObject;
-                                List<IConsumable> requiredFuels = GetRequiredFuels(producerRule, null, input);
+                                List<IConsumable> requiredFuels = GetRequiredFuels(InputInfo.ConvertPFMInputs(producerRule, objectInput), null, input);
 
                                 if (requiredFuels != null)
                                 {
@@ -231,7 +242,7 @@ namespace MassProduction.Automate
                                         {
                                             inputConsumable.Take();
                                             requiredFuels.ForEach(f => f.Reduce());
-                                            List<IConsumable> outputRequiredFuels = GetRequiredFuels(outputConfig, null, input);
+                                            List<IConsumable> outputRequiredFuels = GetRequiredFuels(InputInfo.ConvertPFMInputs(outputConfig), null, input);
                                             outputRequiredFuels.ForEach(f => f.Reduce());
                                             return true;
                                         }
@@ -250,50 +261,29 @@ namespace MassProduction.Automate
         /// <summary>
         /// Adapted from https://github.com/Digus/StardewValleyMods/blob/master/PFMAutomate/Automate/CustomProducerMachine.cs
         /// </summary>
-        /// <param name="producerRule"></param>
+        /// <param name="inputs"></param>
         /// <param name="settings"></param>
         /// <param name="storage"></param>
         /// <returns></returns>
-        private List<IConsumable> GetRequiredFuels(ProducerRule producerRule, MPMSettings settings, IStorage storage)
+        private List<IConsumable> GetRequiredFuels(List<InputInfo> inputs, MPMSettings settings, IStorage storage)
         {
             List<IConsumable> requiredFuels = new List<IConsumable>();
-            foreach (Tuple<int, int> requiredFuel in producerRule.FuelList)
+
+            foreach (InputInfo input in inputs)
             {
-                int quantity = (settings != null) ? settings.CalculateInputRequired(requiredFuel.Item2, requiredFuel.Item1) : requiredFuel.Item2;
+                if (!input.IsFuel) { continue; }
+
+                int quantity = (settings != null) ? settings.CalculateInputRequired(input) : input.BaseQuantity;
 
                 if (quantity == 0) { continue; }
 
-                if (!storage.TryGetIngredient(requiredFuel.Item1, quantity, out IConsumable fuel))
+                if (!storage.TryGetIngredient(input.ID, quantity, out IConsumable fuel))
                 {
                     return null;
                 }
                 requiredFuels.Add(fuel);
             }
-            return requiredFuels;
-        }
 
-        /// <summary>
-        /// Adapted from https://github.com/Digus/StardewValleyMods/blob/master/PFMAutomate/Automate/CustomProducerMachine.cs
-        /// </summary>
-        /// <param name="outputConfig"></param>
-        /// <param name="settings"></param>
-        /// <param name="storage"></param>
-        /// <returns></returns>
-        private List<IConsumable> GetRequiredFuels(OutputConfig outputConfig, MPMSettings settings, IStorage storage)
-        {
-            List<IConsumable> requiredFuels = new List<IConsumable>();
-            foreach (Tuple<int, int> requiredFuel in outputConfig.FuelList)
-            {
-                int quantity = (settings != null) ? settings.CalculateInputRequired(requiredFuel.Item2, requiredFuel.Item1) : requiredFuel.Item2;
-
-                if (quantity == 0) { continue; }
-
-                if (!storage.TryGetIngredient(requiredFuel.Item1, quantity, out IConsumable fuel))
-                {
-                    return null;
-                }
-                requiredFuels.Add(fuel);
-            }
             return requiredFuels;
         }
 

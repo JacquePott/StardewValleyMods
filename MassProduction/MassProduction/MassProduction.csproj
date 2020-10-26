@@ -75,7 +75,10 @@
     <Compile Include="Automate\MPMAutomated.cs" />
     <Compile Include="Automate\MPMAutomationFactory.cs" />
     <Compile Include="Automate\VanillaAutomatedOverride.cs" />
+    <Compile Include="data\ConditionalSetting.cs" />
+    <Compile Include="data\ConditionalSettingCheckCache.cs" />
     <Compile Include="data\ImageHelper.cs" />
+    <Compile Include="data\InputInfo.cs" />
     <Compile Include="data\InputRequirement.cs" />
     <Compile Include="data\MPMManager.cs" />
     <Compile Include="data\MPMSettings.cs" />

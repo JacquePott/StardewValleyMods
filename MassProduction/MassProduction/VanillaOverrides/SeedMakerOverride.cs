@@ -43,27 +43,58 @@ namespace MassProduction.VanillaOverrides
             {
                 try
                 {
-                    int inputQuantity = mpm.Settings.CalculateInputRequired(1);
+                    ITrackedStack crop = null;
+                    InputInfo cropInfo = null;
+                    int inputQuantity = 0;
 
-                    if (input.TryGetIngredient(IsValidCrop, inputQuantity, out IConsumable crop))
+                    foreach (ITrackedStack item in input.GetItems())
                     {
-                        crop.Reduce();
+                        if (IsValidCrop(item))
+                        {
+                            InputInfo inputInfo = new InputInfo()
+                            {
+                                ID = item.Sample.ParentSheetIndex,
+                                Name = item.Sample.Name,
+                                Quality = 0,
+                                IsFuel = false,
+                                BaseQuantity = 1
+                            };
+
+                            if (item.Sample is SObject obj)
+                            {
+                                inputInfo.Quality = obj.Quality;
+                            }
+                            
+                            inputQuantity = mpm.Settings.CalculateInputRequired(inputInfo);
+
+                            if (item.Count >= inputQuantity)
+                            {
+                                crop = item;
+                                cropInfo = inputInfo;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (crop != null)
+                    {
+                        crop.Reduce(inputQuantity);
                         int seedID = SEED_LOOKUP[crop.Sample.ParentSheetIndex];
 
                         Random random = new Random((int)Game1.stats.DaysPlayed +
                             (int)Game1.uniqueIDForThisGame / 2 + (int)originalMachineObject.TileLocation.X + (int)originalMachineObject.TileLocation.Y * 77 + Game1.timeOfDay);
                         int outputID = seedID;
-                        int outputQuantity = mpm.Settings.CalculateInputRequired(random.Next(1, 4));
+                        int outputQuantity = mpm.Settings.CalculateOutputProduced(random.Next(1, 4), cropInfo);
 
                         if (random.NextDouble() < 0.005)
                         {
                             outputID = 499;
-                            outputQuantity = mpm.Settings.CalculateInputRequired(1);
+                            outputQuantity = mpm.Settings.CalculateOutputProduced(1, cropInfo);
                         }
                         else if (random.NextDouble() < 0.02)
                         {
                             outputID = 770;
-                            outputQuantity = mpm.Settings.CalculateInputRequired(random.Next(1, 5));
+                            outputQuantity = mpm.Settings.CalculateOutputProduced(random.Next(1, 5), cropInfo);
                         }
 
                         originalMachineObject.heldObject.Value = new SObject(outputID, outputQuantity);
@@ -115,7 +146,8 @@ namespace MassProduction.VanillaOverrides
             {
                 try
                 {
-                    int inputQuantity = mpm.Settings.CalculateInputRequired(1);
+                    InputInfo inputInfo = InputInfo.ConvertInput(input, 1);
+                    int inputQuantity = mpm.Settings.CalculateInputRequired(inputInfo);
 
                     if (IsValidCrop(input) && input.Stack >= inputQuantity)
                     {
@@ -126,17 +158,17 @@ namespace MassProduction.VanillaOverrides
                         Random random = new Random((int)Game1.stats.DaysPlayed +
                             (int)Game1.uniqueIDForThisGame / 2 + (int)machine.TileLocation.X + (int)machine.TileLocation.Y * 77 + Game1.timeOfDay);
                         int outputID = seedID;
-                        int outputQuantity = mpm.Settings.CalculateInputRequired(random.Next(1, 4));
+                        int outputQuantity = mpm.Settings.CalculateOutputProduced(random.Next(1, 4), inputInfo);
 
                         if (random.NextDouble() < 0.005)
                         {
                             outputID = 499;
-                            outputQuantity = mpm.Settings.CalculateInputRequired(1);
+                            outputQuantity = mpm.Settings.CalculateOutputProduced(1, inputInfo);
                         }
                         else if (random.NextDouble() < 0.02)
                         {
                             outputID = 770;
-                            outputQuantity = mpm.Settings.CalculateInputRequired(random.Next(1, 5));
+                            outputQuantity = mpm.Settings.CalculateOutputProduced(random.Next(1, 5), inputInfo);
                         }
 
                         machine.heldObject.Value = new SObject(outputID, outputQuantity);
